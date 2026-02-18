@@ -138,11 +138,15 @@
     "data": {
         "title": "Data Sources",
         "subtitle": "Manage connectors and data imports",
+        "addNew": "Add Source",
         "addSource": "Add Source",
         "csvUpload": "Upload CSV",
         "apiConnect": "API Connection",
         "manual": "Manual Entry",
         "lastSync": "Last Synced",
+        "active": "Active",
+        "error": "Error",
+        "disabled": "Disabled",
         "noSources": "No data sources yet",
         "noSourcesDesc": "Connect your first data source"
     },

@@ -14,8 +14,15 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "KIPAS — KPI Insight & Performance Analysis System",
   description:
-    "Sistem analisis kinerja dan insight KPI untuk organisasi Indonesia. Monitor, lacak, dan optimalkan performa tim Anda.",
-  keywords: ["KPI", "performance", "analytics", "dashboard", "Indonesia"],
+    "Cooling Down Complexity, Powering Up Performance. Ubah data panas menjadi insight sejuk dan jernih.",
+  keywords: [
+    "KPI",
+    "performance",
+    "analytics",
+    "dashboard",
+    "Indonesia",
+    "KIPAS",
+  ],
 };
 
 export default async function RootLayout({

@@ -1,4 +1,4 @@
-import { eq, sql, count, and, desc, gte } from "drizzle-orm";
+import { eq, sql, count, and, desc, gte, inArray } from "drizzle-orm";
 import { getDatabase } from "@/lib/get-db";
 import {
 	kpis,
@@ -47,12 +47,23 @@ export interface RecentActivity {
 	createdAt: Date;
 }
 
-export async function getDashboardStats(): Promise<DashboardStats> {
+export interface DashboardFilters {
+	startDate?: Date;
+	endDate?: Date;
+	category?: string;
+}
+
+export async function getDashboardStats(filters?: DashboardFilters): Promise<DashboardStats> {
 	const db = await getDatabase();
 
 	const allKpis = await db.select().from(kpis);
-	const totalKpis = allKpis.length;
-	const activeKpis = allKpis.filter((k) => k.status === "active");
+	let activeKpis = allKpis.filter((k) => k.status === "active");
+
+	if (filters?.category && filters.category !== "all") {
+		activeKpis = activeKpis.filter(
+			(k) => k.category?.toLowerCase() === filters.category?.toLowerCase(),
+		);
+	}
 
 	// Calculate KPI performance from latest values
 	const kpiPerformance = await Promise.all(
@@ -74,29 +85,43 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 	const onTrack = kpiPerformance.filter((p) => p.progress >= 80).length;
 	const atRisk = kpiPerformance.filter((p) => p.progress >= 50 && p.progress < 80).length;
 
+	// Count completed goals (filtering by date/category if possible, but goals linkage to category is via KPIs)
+	// For simplicity, we just count all completed goals for now, or filter by owner if we had owner-category mapping
 	const completedGoals = await db
 		.select({ count: count() })
 		.from(goals)
 		.where(eq(goals.status, "completed"));
 
 	return {
-		totalKpis,
+		totalKpis: activeKpis.length,
 		onTrack,
 		atRisk,
 		completed: completedGoals[0]?.count ?? 0,
-		totalKpisChange: `+${Math.max(0, totalKpis - 20)}`,
+		totalKpisChange: `+${Math.max(0, activeKpis.length - 20)}`,
 		onTrackChange: `+${Math.max(0, onTrack - 15)}`,
 		atRiskChange: atRisk > 5 ? `+${atRisk - 5}` : `-${5 - atRisk}`,
 		completedChange: `+${completedGoals[0]?.count ?? 0}`,
 	};
 }
 
-export async function getTrendData(): Promise<TrendDataPoint[]> {
+export async function getTrendData(filters?: DashboardFilters): Promise<TrendDataPoint[]> {
 	const db = await getDatabase();
 
 	const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 	const currentYear = new Date().getFullYear();
 	const result: TrendDataPoint[] = [];
+
+	// If a category filter is applied, we need to filter values by KPIs in that category
+	const categoryFilter = filters?.category && filters.category !== "all" ? filters.category : undefined;
+
+	let categoryKpiIds: string[] | undefined;
+	if (categoryFilter) {
+		const catKpis = await db
+			.select({ id: kpis.id })
+			.from(kpis)
+			.where(eq(kpis.category, categoryFilter));
+		categoryKpiIds = catKpis.map((k) => k.id);
+	}
 
 	for (let m = 0; m < 8; m++) {
 		const monthStr = String(m + 1).padStart(2, "0");
@@ -105,44 +130,78 @@ export async function getTrendData(): Promise<TrendDataPoint[]> {
 		const endYear = m + 2 > 12 ? currentYear + 1 : currentYear;
 		const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
 
-		const values = await db
-			.select({ avg: sql<number>`AVG(${kpiValues.value})` })
-			.from(kpiValues)
-			.where(and(gte(kpiValues.date, startDate), sql`${kpiValues.date} < ${endDate}`));
+		let avgValue = 0;
+		if (categoryKpiIds && categoryKpiIds.length > 0) {
+			const values = await db
+				.select({ avg: sql<number>`AVG(${kpiValues.value})` })
+				.from(kpiValues)
+				.where(
+					and(
+						gte(kpiValues.date, startDate),
+						sql`${kpiValues.date} < ${endDate}`,
+						inArray(kpiValues.kpiId, categoryKpiIds),
+					),
+				);
+			avgValue = values[0]?.avg ?? 0;
+		} else if (!categoryFilter) {
+			const values = await db
+				.select({ avg: sql<number>`AVG(${kpiValues.value})` })
+				.from(kpiValues)
+				.where(
+					and(gte(kpiValues.date, startDate), sql`${kpiValues.date} < ${endDate}`),
+				);
+			avgValue = values[0]?.avg ?? 0;
+		}
 
-		const avgTargets = await db
-			.select({ avg: sql<number>`AVG(${kpis.targetValue})` })
-			.from(kpis)
-			.where(eq(kpis.status, "active"));
+		let avgTarget = 0;
+		if (categoryFilter) {
+			const targets = await db
+				.select({ avg: sql<number>`AVG(${kpis.targetValue})` })
+				.from(kpis)
+				.where(and(eq(kpis.status, "active"), eq(kpis.category, categoryFilter)));
+			avgTarget = targets[0]?.avg ?? 0;
+		} else {
+			const targets = await db
+				.select({ avg: sql<number>`AVG(${kpis.targetValue})` })
+				.from(kpis)
+				.where(eq(kpis.status, "active"));
+			avgTarget = targets[0]?.avg ?? 0;
+		}
 
 		result.push({
 			month: months[m],
-			kpi: Math.round(values[0]?.avg ?? 0),
-			target: Math.round(avgTargets[0]?.avg ?? 0),
+			kpi: Math.round(avgValue),
+			target: Math.round(avgTarget),
 		});
 	}
 
 	return result;
 }
 
-export async function getTeamPerformance(): Promise<TeamPerformance[]> {
+export async function getTeamPerformance(filters?: DashboardFilters): Promise<TeamPerformance[]> {
 	const db = await getDatabase();
 
-	const categories = await db
-		.select({ category: kpis.category })
-		.from(kpis)
-		.where(eq(kpis.status, "active"))
-		.groupBy(kpis.category);
+	// If category filter is present, we only show that category
+	let validCategories: string[] = [];
+	
+	if (filters?.category && filters.category !== "all") {
+		validCategories = [filters.category];
+	} else {
+		const categories = await db
+			.select({ category: kpis.category })
+			.from(kpis)
+			.where(eq(kpis.status, "active"))
+			.groupBy(kpis.category);
+		validCategories = categories.map(c => c.category).filter((c): c is string => !!c);
+	}
 
 	const result: TeamPerformance[] = [];
 
-	for (const cat of categories) {
-		if (!cat.category) continue;
-
+	for (const cat of validCategories) {
 		const categoryKpis = await db
 			.select()
 			.from(kpis)
-			.where(and(eq(kpis.status, "active"), eq(kpis.category, cat.category)));
+			.where(and(eq(kpis.status, "active"), eq(kpis.category, cat)));
 
 		let totalProgress = 0;
 		let counted = 0;
@@ -162,7 +221,7 @@ export async function getTeamPerformance(): Promise<TeamPerformance[]> {
 		}
 
 		result.push({
-			name: cat.category,
+			name: cat,
 			value: counted > 0 ? Math.round(totalProgress / counted) : 0,
 		});
 	}
@@ -170,9 +229,14 @@ export async function getTeamPerformance(): Promise<TeamPerformance[]> {
 	return result.sort((a, b) => b.value - a.value);
 }
 
-export async function getCategoryBreakdown(): Promise<CategoryBreakdown[]> {
+export async function getCategoryBreakdown(filters?: DashboardFilters): Promise<CategoryBreakdown[]> {
 	const db = await getDatabase();
-	const allKpis = await db.select().from(kpis);
+	
+	let allKpis = await db.select().from(kpis);
+	
+	if (filters?.category && filters.category !== "all") {
+		allKpis = allKpis.filter(k => k.category === filters.category);
+	}
 
 	const performance = await Promise.all(
 		allKpis.map(async (kpi) => {
@@ -200,10 +264,10 @@ export async function getCategoryBreakdown(): Promise<CategoryBreakdown[]> {
 	).length;
 
 	return [
-		{ name: "Tercapai", value: achieved, color: "#0f7b6c" },
-		{ name: "Sesuai Target", value: onTarget, color: "#2383e2" },
-		{ name: "Berisiko", value: atRisk, color: "#d9730d" },
-		{ name: "Terlambat", value: behind, color: "#e03e3e" },
+		{ name: "Tercapai", value: achieved, color: "#14b8a6" }, // Teal-500
+		{ name: "Sesuai Target", value: onTarget, color: "#06b6d4" }, // Cyan-500
+		{ name: "Berisiko", value: atRisk, color: "#f59e0b" }, // Amber-500
+		{ name: "Terlambat", value: behind, color: "#ef4444" }, // Red-500
 	];
 }
 

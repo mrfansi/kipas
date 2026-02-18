@@ -8,7 +8,7 @@ import {
   getRecentActivities,
 } from "@/lib/data/dashboard";
 
-export default async function DashboardPage(props: {
+export default async function PresentationPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
@@ -36,16 +36,19 @@ export default async function DashboardPage(props: {
   ]);
 
   return (
-    <DashboardContent
-      userName={user?.name}
-      stats={stats}
-      trendData={trendData}
-      teamPerformance={teamPerformance}
-      categoryBreakdown={categoryBreakdown}
-      recentActivities={recentActivities.map((a) => ({
-        ...a,
-        createdAt: a.createdAt.toISOString(),
-      }))}
-    />
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+      <DashboardContent
+        userName={user?.name}
+        stats={stats}
+        trendData={trendData}
+        teamPerformance={teamPerformance}
+        categoryBreakdown={categoryBreakdown}
+        recentActivities={recentActivities.map((a) => ({
+          ...a,
+          createdAt: a.createdAt.toISOString(),
+        }))}
+        mode="presentation"
+      />
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export const users = sqliteTable("users", {
 	email: text("email").notNull().unique(),
 	name: text("name").notNull(),
 	avatarUrl: text("avatar_url"),
-	role: text("role", { enum: ["admin", "manager", "member"] }).notNull().default("member"),
+	role: text("role", { enum: ["admin", "manager", "member", "presenter"] }).notNull().default("member"),
 	organizationId: text("organization_id").references(() => organizations.id),
 	locale: text("locale").notNull().default("id"),
 	isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
@@ -36,6 +36,7 @@ export const kpis = sqliteTable("kpis", {
 	targetValue: real("target_value"),
 	minValue: real("min_value"),
 	maxValue: real("max_value"),
+	thresholdConfig: text("threshold_config", { mode: "json" }), // { red: [0, 50], yellow: [50, 80], green: [80, 100] }
 	weight: real("weight").default(1),
 	frequency: text("frequency", { enum: ["daily", "weekly", "monthly", "quarterly"] }).notNull().default("monthly"),
 	ownerId: text("owner_id").references(() => users.id),
@@ -131,7 +132,9 @@ export const dataSources = sqliteTable("data_sources", {
 	organizationId: text("organization_id").notNull().references(() => organizations.id),
 	name: text("name").notNull(),
 	type: text("type", { enum: ["csv", "api", "manual"] }).notNull(),
-	config: text("config"), // JSON stringified config
+	config: text("config", { mode: "json" }), // JSON stringified config (url, headers, mapping)
+	ingestSchedule: text("ingest_schedule"), // cron expression or "manual"
+	validationRules: text("validation_rules", { mode: "json" }), // JSON rules for data cleaning
 	lastSyncAt: integer("last_sync_at", { mode: "timestamp" }),
 	status: text("status", { enum: ["active", "error", "disabled"] }).notNull().default("active"),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),

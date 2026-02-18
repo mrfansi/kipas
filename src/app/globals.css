@@ -64,114 +64,114 @@
 }
 
 :root {
-  --radius: 0.9rem;
-  --background: #f1f5f9;
-  --foreground: #061525;
-  --card: #fdfefe;
-  --card-foreground: #061525;
+  --radius: 0.75rem;
+  --background: #f0f9ff; /* Sky-50 */
+  --foreground: #0f172a; /* Slate-900 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #061525;
-  --primary: #004a7a;
-  --primary-foreground: #f8fcff;
-  --secondary: #e2ebf3;
-  --secondary-foreground: #12283b;
-  --muted: #dfe8f1;
-  --muted-foreground: #567084;
-  --accent: #d5e6f6;
-  --accent-foreground: #082036;
-  --destructive: #db3a34;
-  --border: #c3d6e5;
-  --input: #c3d6e5;
-  --ring: #0075bf;
+  --popover-foreground: #0f172a;
+  --primary: #0891b2; /* Cyan-600 */
+  --primary-foreground: #ecfeff;
+  --secondary: #cffafe; /* Cyan-100 */
+  --secondary-foreground: #155e75; /* Cyan-800 */
+  --muted: #e2e8f0; /* Slate-200 */
+  --muted-foreground: #64748b; /* Slate-500 */
+  --accent: #e0f2fe; /* Sky-100 */
+  --accent-foreground: #0c4a6e; /* Sky-900 */
+  --destructive: #ef4444;
+  --border: #cbd5e1; /* Slate-300 */
+  --input: #cbd5e1;
+  --ring: #06b6d4; /* Cyan-500 */
 
-  --chart-1: #00a0b0;
-  --chart-2: #0075bf;
-  --chart-3: #005cb9;
-  --chart-4: #f39f1d;
-  --chart-5: #db3a34;
+  --chart-1: #06b6d4; /* Cyan */
+  --chart-2: #0f766e; /* Teal */
+  --chart-3: #0369a1; /* Sky Blue */
+  --chart-4: #f59e0b; /* Amber (contrast) */
+  --chart-5: #64748b; /* Slate */
 
-  --sidebar: #0a1a2a;
-  --sidebar-foreground: #d9e9f5;
-  --sidebar-primary: #15c8d4;
-  --sidebar-primary-foreground: #052e35;
-  --sidebar-accent: #13283d;
-  --sidebar-accent-foreground: #f3f8fc;
-  --sidebar-border: #1f3951;
-  --sidebar-ring: #54d6df;
+  --sidebar: #0f172a; /* Slate-900 (Deep Blue) */
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #06b6d4; /* Cyan-500 */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b; /* Slate-800 */
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #06b6d4;
 
-  --notion-default: #0b2135;
-  --notion-gray: #647f96;
-  --notion-brown: #8f6b4f;
-  --notion-orange: #d67d11;
-  --notion-yellow: #b98500;
-  --notion-green: #007c85;
-  --notion-blue: #0065a4;
-  --notion-pink: #aa3e79;
-  --notion-red: #c83a34;
+  --notion-default: #0f172a;
+  --notion-gray: #64748b;
+  --notion-brown: #9a3412;
+  --notion-orange: #d97706;
+  --notion-yellow: #ca8a04;
+  --notion-green: #166534;
+  --notion-blue: #1d4ed8;
+  --notion-pink: #be185d;
+  --notion-red: #dc2626;
 
-  --notion-bg-gray: #d4dde6;
-  --notion-bg-brown: #e8dfd8;
-  --notion-bg-orange: #f9e4ca;
-  --notion-bg-yellow: #f3eacc;
-  --notion-bg-green: #d2edf0;
-  --notion-bg-blue: #d5e9f8;
-  --notion-bg-pink: #f2dce8;
-  --notion-bg-red: #f7d8d6;
+  --notion-bg-gray: #f1f5f9;
+  --notion-bg-brown: #ffedd5;
+  --notion-bg-orange: #ffedd5;
+  --notion-bg-yellow: #fef9c3;
+  --notion-bg-green: #dcfce7;
+  --notion-bg-blue: #dbeafe;
+  --notion-bg-pink: #fce7f3;
+  --notion-bg-red: #fee2e2;
 }
 
 .dark {
-  --background: #040b14;
-  --foreground: #deedf8;
-  --card: #0b1625;
-  --card-foreground: #deedf8;
-  --popover: #101d2f;
-  --popover-foreground: #deedf8;
-  --primary: #4ecbe5;
-  --primary-foreground: #03151f;
-  --secondary: #132338;
-  --secondary-foreground: #d0e4f4;
-  --muted: #112030;
-  --muted-foreground: #7e9db8;
-  --accent: #18324d;
-  --accent-foreground: #d5e9f8;
-  --destructive: #ff625b;
-  --border: #21415f;
-  --input: #21415f;
-  --ring: #4ecbe5;
+  --background: #020617; /* Slate-950 */
+  --foreground: #f8fafc;
+  --card: #0f172a; /* Slate-900 */
+  --card-foreground: #f8fafc;
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+  --primary: #22d3ee; /* Cyan-400 */
+  --primary-foreground: #083344;
+  --secondary: #1e293b; /* Slate-800 */
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* Slate-400 */
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  --destructive: #f87171;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #22d3ee;
 
-  --chart-1: #38d4c4;
-  --chart-2: #43b8ff;
-  --chart-3: #6590ff;
-  --chart-4: #ffba5c;
-  --chart-5: #ff706a;
+  --chart-1: #22d3ee; /* Cyan */
+  --chart-2: #14b8a6; /* Teal */
+  --chart-3: #38bdf8; /* Sky */
+  --chart-4: #fbbf24; /* Amber */
+  --chart-5: #94a3b8; /* Slate */
 
-  --sidebar: #06101c;
-  --sidebar-foreground: #bfd7ea;
-  --sidebar-primary: #54d6df;
-  --sidebar-primary-foreground: #062732;
-  --sidebar-accent: #102133;
-  --sidebar-accent-foreground: #eaf4fb;
-  --sidebar-border: #17324a;
-  --sidebar-ring: #7ce5f0;
+  --sidebar: #020617; /* Slate-950 */
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #020617;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #22d3ee;
 
-  --notion-default: #d6ebf8;
-  --notion-gray: #8aa5bc;
-  --notion-brown: #c49b7b;
-  --notion-orange: #ffa43c;
-  --notion-yellow: #ffd36a;
-  --notion-green: #4ad9cc;
-  --notion-blue: #59bffe;
-  --notion-pink: #ef7bc2;
-  --notion-red: #ff7f76;
+  --notion-default: #f8fafc;
+  --notion-gray: #94a3b8;
+  --notion-brown: #fdba74;
+  --notion-orange: #fdba74;
+  --notion-yellow: #fde047;
+  --notion-green: #86efac;
+  --notion-blue: #93c5fd;
+  --notion-pink: #f9a8d4;
+  --notion-red: #fca5a5;
 
-  --notion-bg-gray: #142636;
-  --notion-bg-brown: #2d2620;
-  --notion-bg-orange: #322414;
-  --notion-bg-yellow: #312a16;
-  --notion-bg-green: #133136;
-  --notion-bg-blue: #12263b;
-  --notion-bg-pink: #311c2e;
-  --notion-bg-red: #351d1b;
+  --notion-bg-gray: #1e293b;
+  --notion-bg-brown: #451a03;
+  --notion-bg-orange: #451a03;
+  --notion-bg-yellow: #422006;
+  --notion-bg-green: #14532d;
+  --notion-bg-blue: #1e3a8a;
+  --notion-bg-pink: #831843;
+  --notion-bg-red: #7f1d1d;
 }
 
 @layer base {
@@ -182,36 +182,52 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 90% -5%, rgba(0, 117, 191, 0.22), transparent 30%),
-      radial-gradient(circle at -5% 15%, rgba(0, 160, 176, 0.18), transparent 38%),
-      linear-gradient(140deg, rgba(255, 255, 255, 0.2), transparent 35%);
+      radial-gradient(
+        circle at 90% -5%,
+        rgba(6, 182, 212, 0.15),
+        transparent 30%
+      ),
+      radial-gradient(
+        circle at -5% 15%,
+        rgba(20, 184, 166, 0.12),
+        transparent 38%
+      ),
+      linear-gradient(140deg, rgba(255, 255, 255, 0.4), transparent 35%);
     background-attachment: fixed;
   }
 }
 
 @layer components {
   .glass-topbar {
-    @apply border-b border-border/80 bg-background/85 backdrop-blur-xl;
+    @apply border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60;
   }
 
   .panel-card {
-    @apply rounded-2xl border border-border/70 bg-card/90 shadow-[0_8px_24px_rgba(4,22,38,0.07)] backdrop-blur-sm;
+    @apply rounded-xl border border-border/50 bg-card/60 shadow-sm backdrop-blur-sm transition-all hover:border-cyan-500/30;
   }
 
   .hero-panel {
-    @apply relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-r from-[#0e2438] via-[#143a58] to-[#0f4f73] text-white shadow-[0_18px_36px_rgba(8,34,58,0.36)];
+    @apply relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl;
   }
 
   .hero-panel::after {
     content: "";
     @apply pointer-events-none absolute inset-0;
     background:
-      linear-gradient(100deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 35%),
-      radial-gradient(circle at 90% 20%, rgba(42, 221, 234, 0.35), transparent 45%);
+      linear-gradient(
+        100deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0) 40%
+      ),
+      radial-gradient(
+        circle at 90% 20%,
+        rgba(6, 182, 212, 0.3),
+        transparent 50%
+      );
   }
 
   .metric-tile {
-    @apply rounded-xl border border-border/70 bg-card/90 p-4 shadow-[0_8px_20px_rgba(4,22,38,0.07)];
+    @apply rounded-xl border border-border/60 bg-card/80 p-5 shadow-sm transition-all hover:shadow-md;
   }
 }
 

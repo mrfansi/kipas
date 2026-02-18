@@ -138,11 +138,15 @@
     "data": {
         "title": "Sumber Data",
         "subtitle": "Kelola konektor dan impor data",
+        "addNew": "Tambah Sumber",
         "addSource": "Tambah Sumber",
         "csvUpload": "Unggah CSV",
         "apiConnect": "Koneksi API",
         "manual": "Input Manual",
         "lastSync": "Sinkronisasi Terakhir",
+        "active": "Aktif",
+        "error": "Error",
+        "disabled": "Nonaktif",
         "noSources": "Belum ada sumber data",
         "noSourcesDesc": "Hubungkan sumber data pertama Anda"
     },
