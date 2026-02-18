@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PageHero } from "@/components/layout/page-hero";
+import { submitCheckin } from "@/lib/actions/checkins";
+import { toast } from "sonner";
 
 const moodOptions = [
   {
@@ -30,48 +32,90 @@ const moodOptions = [
   { key: "bad", emoji: "😞", color: "bg-notion-bg-red border-notion-red" },
 ] as const;
 
-const pastCheckins = [
-  {
-    weekStart: "2026-02-10",
-    mood: "good" as const,
-    accomplishments:
-      "Berhasil menutup 3 deal baru dengan total Rp 150 juta. Menyelesaikan user research untuk fitur baru.",
-    blockers: "Menunggu approval dari tim legal untuk kontrak baru.",
-    plans: "Follow-up dengan 5 prospek baru. Mulai sprint planning untuk Q2.",
-    submittedAt: "2026-02-14",
-  },
-  {
-    weekStart: "2026-02-03",
-    mood: "great" as const,
-    accomplishments:
-      "Launch fitur dashboard v2 tanpa bug kritis. NPS naik 5 poin.",
-    blockers: "Tidak ada hambatan signifikan.",
-    plans:
-      "Mulai development modul reporting. Koordinasi dengan tim marketing untuk campaign.",
-    submittedAt: "2026-02-07",
-  },
-  {
-    weekStart: "2026-01-27",
-    mood: "struggling" as const,
-    accomplishments:
-      "Selesaikan migrasi database. Patch security vulnerability.",
-    blockers: "Server downtime 2 jam mempengaruhi sprint velocity.",
-    plans: "Evaluasi infrastruktur. Setup monitoring alerting yang lebih baik.",
-    submittedAt: "2026-01-31",
-  },
-];
+interface CheckinItem {
+  id: string;
+  weekStart: string;
+  mood: string | null;
+  accomplishments: string | null;
+  blockers: string | null;
+  plans: string | null;
+  submittedAt: string | null;
+  createdAt: string;
+}
 
-export function CheckinsContent() {
+interface CheckinsContentProps {
+  userId: string;
+  pastCheckins: CheckinItem[];
+}
+
+function getCurrentWeekStart(): string {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  return monday.toISOString().split("T")[0];
+}
+
+function getCurrentWeekRange(): string {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+
+  const format = (d: Date) =>
+    d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  return `${format(monday).split(" ").slice(0, 2).join(" ")} - ${format(friday)}`;
+}
+
+export function CheckinsContent({
+  userId,
+  pastCheckins,
+}: CheckinsContentProps) {
   const t = useTranslations("checkins");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [accomplishments, setAccomplishments] = useState("");
   const [blockers, setBlockers] = useState("");
   const [plans, setPlans] = useState("");
   const [privateNotes, setPrivateNotes] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const getMoodEmoji = (mood: string) => {
     return moodOptions.find((m) => m.key === mood)?.emoji || "😐";
   };
+
+  async function handleSubmit() {
+    if (!selectedMood) {
+      toast.error("Pilih mood Anda terlebih dahulu");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("userId", userId);
+    formData.set("weekStart", getCurrentWeekStart());
+    formData.set("mood", selectedMood);
+    formData.set("accomplishments", accomplishments);
+    formData.set("blockers", blockers);
+    formData.set("plans", plans);
+    formData.set("privateNotes", privateNotes);
+
+    startTransition(async () => {
+      const result = await submitCheckin(formData);
+      if (result.success) {
+        toast.success("Check-in berhasil dikirim!");
+        setSelectedMood(null);
+        setAccomplishments("");
+        setBlockers("");
+        setPlans("");
+        setPrivateNotes("");
+      }
+    });
+  }
 
   return (
     <div className="space-y-5 lg:space-y-6">
@@ -88,7 +132,7 @@ export function CheckinsContent() {
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             📝 {t("thisWeek")}
             <Badge variant="outline" className="ml-auto text-[10px]">
-              17 - 21 Feb 2026
+              {getCurrentWeekRange()}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -169,9 +213,13 @@ export function CheckinsContent() {
             />
           </div>
 
-          <Button className="gap-1.5">
+          <Button
+            className="gap-1.5"
+            onClick={handleSubmit}
+            disabled={isPending}
+          >
             <Send className="w-3.5 h-3.5" />
-            {t("submit")}
+            {isPending ? "Mengirim..." : t("submit")}
           </Button>
         </CardContent>
       </Card>
@@ -181,57 +229,76 @@ export function CheckinsContent() {
         <h2 className="text-sm font-medium text-muted-foreground">
           Riwayat Check-in
         </h2>
-        {pastCheckins.map((checkin, i) => (
-          <Card key={i} className="panel-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">{getMoodEmoji(checkin.mood)}</span>
-                <span className="text-sm font-medium">
-                  Minggu{" "}
-                  {new Date(checkin.weekStart).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  Dikirim{" "}
-                  {new Date(checkin.submittedAt).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
+        {pastCheckins.length > 0 ? (
+          pastCheckins.map((checkin) => (
+            <Card key={checkin.id} className="panel-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">
+                    {getMoodEmoji(checkin.mood ?? "okay")}
+                  </span>
+                  <span className="text-sm font-medium">
+                    Minggu{" "}
+                    {new Date(checkin.weekStart).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                  {checkin.submittedAt && (
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      Dikirim{" "}
+                      {new Date(checkin.submittedAt).toLocaleDateString(
+                        "id-ID",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
+                    </span>
+                  )}
+                </div>
 
-              <div className="space-y-2 text-sm">
-                {checkin.accomplishments && (
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      ✅ Pencapaian
-                    </span>
-                    <p className="text-sm mt-0.5">{checkin.accomplishments}</p>
-                  </div>
-                )}
-                {checkin.blockers && (
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      🚧 Hambatan
-                    </span>
-                    <p className="text-sm mt-0.5">{checkin.blockers}</p>
-                  </div>
-                )}
-                {checkin.plans && (
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      📋 Rencana
-                    </span>
-                    <p className="text-sm mt-0.5">{checkin.plans}</p>
-                  </div>
-                )}
-              </div>
+                <div className="space-y-2 text-sm">
+                  {checkin.accomplishments && (
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        ✅ Pencapaian
+                      </span>
+                      <p className="text-sm mt-0.5">
+                        {checkin.accomplishments}
+                      </p>
+                    </div>
+                  )}
+                  {checkin.blockers && (
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        🚧 Hambatan
+                      </span>
+                      <p className="text-sm mt-0.5">{checkin.blockers}</p>
+                    </div>
+                  )}
+                  {checkin.plans && (
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        📋 Rencana
+                      </span>
+                      <p className="text-sm mt-0.5">{checkin.plans}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card className="panel-card">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum ada riwayat check-in. Kirim check-in pertama Anda!
+              </p>
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
     </div>
   );

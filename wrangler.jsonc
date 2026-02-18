@@ -32,6 +32,14 @@
 			"service": "kipas"
 		}
 	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "kipas-db",
+			"database_id": "7c4c55d9-3af6-4b67-8342-ef01d801b4ef",
+			"migrations_dir": "drizzle"
+		}
+	],
 	"observability": {
 		"enabled": true
 	}

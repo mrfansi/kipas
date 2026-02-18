@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Plus,
@@ -17,6 +18,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PageHero } from "@/components/layout/page-hero";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createGoal } from "@/lib/actions/goals";
+import { toast } from "sonner";
 
 const statusConfig = {
   not_started: {
@@ -46,76 +65,60 @@ const statusConfig = {
   },
 };
 
-const demoGoals = [
-  {
-    id: "1",
-    title: "Meningkatkan Revenue 20% di Q1",
-    description:
-      "Target peningkatan pendapatan tahunan melalui diversifikasi produk dan ekspansi pasar.",
-    status: "in_progress" as const,
-    progress: 65,
-    owner: "Ari Pratama",
-    dueDate: "2026-03-31",
-    linkedKpis: 3,
-  },
-  {
-    id: "2",
-    title: "Kurangi Customer Churn < 5%",
-    description:
-      "Menurunkan tingkat kehilangan pelanggan dengan meningkatkan kualitas layanan.",
-    status: "at_risk" as const,
-    progress: 40,
-    owner: "Siti Nurhaliza",
-    dueDate: "2026-06-30",
-    linkedKpis: 2,
-  },
-  {
-    id: "3",
-    title: "Launch Fitur Mobile App v2",
-    description:
-      "Rilis versi baru aplikasi mobile dengan fitur offline dan notifikasi push.",
-    status: "in_progress" as const,
-    progress: 78,
-    owner: "Dewi Lestari",
-    dueDate: "2026-02-28",
-    linkedKpis: 4,
-  },
-  {
-    id: "4",
-    title: "Sertifikasi ISO 27001",
-    description: "Mendapatkan sertifikasi keamanan informasi ISO 27001.",
-    status: "not_started" as const,
-    progress: 0,
-    owner: "Budi Santoso",
-    dueDate: "2026-09-30",
-    linkedKpis: 1,
-  },
-  {
-    id: "5",
-    title: "Onboarding 50 Karyawan Baru",
-    description:
-      "Proses rekrutmen dan onboarding untuk mendukung pertumbuhan tim.",
-    status: "completed" as const,
-    progress: 100,
-    owner: "Rina Wati",
-    dueDate: "2026-01-31",
-    linkedKpis: 2,
-  },
-];
+interface GoalItem {
+  id: string;
+  title: string;
+  description: string | null;
+  status: "not_started" | "in_progress" | "at_risk" | "completed" | "cancelled";
+  progress: number;
+  owner: string;
+  ownerId: string | null;
+  dueDate: string | null;
+  startDate: string | null;
+  linkedKpis: number;
+}
 
-export function GoalsContent() {
+interface UserOption {
+  id: string;
+  name: string;
+}
+
+interface GoalsContentProps {
+  goals: GoalItem[];
+  users: UserOption[];
+}
+
+export function GoalsContent({ goals, users }: GoalsContentProps) {
   const t = useTranslations("goals");
-  const completedGoals = demoGoals.filter((goal) => goal.status === "completed").length;
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const completedGoals = goals.filter(
+    (goal) => goal.status === "completed",
+  ).length;
+
+  async function handleCreateGoal(formData: FormData) {
+    startTransition(async () => {
+      const result = await createGoal(formData);
+      if (result.success) {
+        toast.success("Tujuan berhasil dibuat");
+        setShowNewDialog(false);
+      }
+    });
+  }
 
   return (
     <div className="space-y-5 lg:space-y-6">
       <PageHero
         marker="Planning"
-        badge={`${completedGoals}/${demoGoals.length} closed`}
+        badge={`${completedGoals}/${goals.length} closed`}
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <Button size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+          <Button
+            size="sm"
+            className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100"
+            onClick={() => setShowNewDialog(true)}
+          >
             <Plus className="w-3.5 h-3.5" />
             {t("addNew")}
           </Button>
@@ -127,7 +130,7 @@ export function GoalsContent() {
         {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map(
           (key) => {
             const config = statusConfig[key];
-            const count = demoGoals.filter((g) => g.status === key).length;
+            const count = goals.filter((g) => g.status === key).length;
             return (
               <Badge
                 key={key}
@@ -144,61 +147,151 @@ export function GoalsContent() {
 
       {/* Goals List */}
       <div className="space-y-3">
-        {demoGoals.map((goal) => {
-          const config = statusConfig[goal.status];
-          const StatusIcon = config.icon;
-          const isOverdue =
-            new Date(goal.dueDate) < new Date() && goal.status !== "completed";
+        {goals.length > 0 ? (
+          goals.map((goal) => {
+            const config = statusConfig[goal.status];
+            const StatusIcon = config.icon;
+            const isOverdue =
+              goal.dueDate &&
+              new Date(goal.dueDate) < new Date() &&
+              goal.status !== "completed";
 
-          return (
-            <Card key={goal.id} className="panel-card cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`p-1.5 rounded-md ${config.color} mt-0.5`}>
-                    <StatusIcon className="w-4 h-4" />
+            return (
+              <Card key={goal.id} className="panel-card cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-1.5 rounded-md ${config.color} mt-0.5`}>
+                      <StatusIcon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-medium text-sm">{goal.title}</h3>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {goal.progress}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                        {goal.description}
+                      </p>
+
+                      <div className="mt-3">
+                        <Progress value={goal.progress} className="h-1.5" />
+                      </div>
+
+                      <div className="flex items-center gap-4 mt-3 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <User className="w-3 h-3" />
+                          {goal.owner}
+                        </div>
+                        {goal.dueDate && (
+                          <div
+                            className={`flex items-center gap-1.5 text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
+                          >
+                            <Calendar className="w-3 h-3" />
+                            {new Date(goal.dueDate).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Link2 className="w-3 h-3" />
+                          {goal.linkedKpis} {t("linkedKpis")}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-medium text-sm">{goal.title}</h3>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {goal.progress}%
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                      {goal.description}
-                    </p>
-
-                    <div className="mt-3">
-                      <Progress value={goal.progress} className="h-1.5" />
-                    </div>
-
-                    <div className="flex items-center gap-4 mt-3 flex-wrap">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <User className="w-3 h-3" />
-                        {goal.owner}
-                      </div>
-                      <div
-                        className={`flex items-center gap-1.5 text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
-                      >
-                        <Calendar className="w-3 h-3" />
-                        {new Date(goal.dueDate).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Link2 className="w-3 h-3" />
-                        {goal.linkedKpis} {t("linkedKpis")}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })
+        ) : (
+          <Card className="panel-card">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum ada tujuan. Buat tujuan pertama Anda!
+              </p>
+              <Button
+                size="sm"
+                className="mt-4 gap-1.5"
+                onClick={() => setShowNewDialog(true)}
+              >
+                <Plus className="w-3.5 h-3.5" /> {t("addNew")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* New Goal Dialog */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Buat Tujuan Baru</DialogTitle>
+          </DialogHeader>
+          <form action={handleCreateGoal}>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label>Judul</Label>
+                <Input
+                  name="title"
+                  placeholder="Contoh: Meningkatkan Revenue 20%"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Deskripsi</Label>
+                <Textarea
+                  name="description"
+                  placeholder="Deskripsi tujuan..."
+                  rows={2}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>Tanggal Mulai</Label>
+                  <Input name="startDate" type="date" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tanggal Selesai</Label>
+                  <Input name="dueDate" type="date" />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Pemilik</Label>
+                <Select name="ownerId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih pemilik" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowNewDialog(false)}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Menyimpan..." : "Simpan"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

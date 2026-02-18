@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Plus,
@@ -53,108 +53,35 @@ import {
 } from "@/components/ui/select";
 import { KpiImportDialog } from "./kpi-import-dialog";
 import { PageHero } from "@/components/layout/page-hero";
+import { createKpi, deleteKpi } from "@/lib/actions/kpis";
+import { toast } from "sonner";
 
-// Demo KPI data
-const demoKpis = [
-  {
-    id: "1",
-    name: "Revenue Bulanan",
-    category: "Penjualan",
-    unit: "currency",
-    target: 500000000,
-    current: 425000000,
-    progress: 85,
-    status: "active" as const,
-    frequency: "monthly" as const,
-    owner: "Ari Pratama",
-    trend: "up" as const,
-    weight: 3,
-  },
-  {
-    id: "2",
-    name: "Customer Satisfaction Score",
-    category: "Layanan",
-    unit: "percentage",
-    target: 90,
-    current: 87,
-    progress: 97,
-    status: "active" as const,
-    frequency: "monthly" as const,
-    owner: "Siti Nurhaliza",
-    trend: "up" as const,
-    weight: 2,
-  },
-  {
-    id: "3",
-    name: "Employee Retention Rate",
-    category: "SDM",
-    unit: "percentage",
-    target: 95,
-    current: 88,
-    progress: 93,
-    status: "active" as const,
-    frequency: "quarterly" as const,
-    owner: "Budi Santoso",
-    trend: "down" as const,
-    weight: 2,
-  },
-  {
-    id: "4",
-    name: "Time to Market",
-    category: "Engineering",
-    unit: "number",
-    target: 14,
-    current: 18,
-    progress: 78,
-    status: "active" as const,
-    frequency: "weekly" as const,
-    owner: "Dewi Lestari",
-    trend: "flat" as const,
-    weight: 1,
-  },
-  {
-    id: "5",
-    name: "Lead Conversion Rate",
-    category: "Marketing",
-    unit: "percentage",
-    target: 25,
-    current: 21,
-    progress: 84,
-    status: "active" as const,
-    frequency: "monthly" as const,
-    owner: "Fajar Hidayat",
-    trend: "up" as const,
-    weight: 2,
-  },
-  {
-    id: "6",
-    name: "Cost per Acquisition",
-    category: "Marketing",
-    unit: "currency",
-    target: 150000,
-    current: 180000,
-    progress: 83,
-    status: "active" as const,
-    frequency: "monthly" as const,
-    owner: "Rina Wati",
-    trend: "down" as const,
-    weight: 1,
-  },
-  {
-    id: "7",
-    name: "Net Promoter Score",
-    category: "Layanan",
-    unit: "number",
-    target: 70,
-    current: 65,
-    progress: 93,
-    status: "paused" as const,
-    frequency: "quarterly" as const,
-    owner: "Siti Nurhaliza",
-    trend: "flat" as const,
-    weight: 1,
-  },
-];
+interface KpiItem {
+  id: string;
+  name: string;
+  category: string;
+  unit: string;
+  target: number;
+  current: number;
+  progress: number;
+  status: "active" | "paused" | "archived";
+  frequency: "daily" | "weekly" | "monthly" | "quarterly";
+  owner: string;
+  ownerId: string | null;
+  trend: "up" | "down" | "flat";
+  weight: number;
+  description: string | null;
+}
+
+interface UserOption {
+  id: string;
+  name: string;
+}
+
+interface KpiContentProps {
+  kpis: KpiItem[];
+  users: UserOption[];
+}
 
 function formatValue(value: number, unit: string) {
   if (unit === "currency") {
@@ -190,20 +117,40 @@ function StatusBadge({ status }: { status: "active" | "paused" | "archived" }) {
   );
 }
 
-export function KpiContent() {
+export function KpiContent({ kpis, users }: KpiContentProps) {
   const t = useTranslations("kpi");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const filteredKpis = demoKpis.filter((kpi) => {
+  const filteredKpis = kpis.filter((kpi) => {
     const matchesSearch =
       kpi.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       kpi.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || kpi.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  async function handleCreateKpi(formData: FormData) {
+    startTransition(async () => {
+      const result = await createKpi(formData);
+      if (result.success) {
+        toast.success("KPI berhasil dibuat");
+        setShowNewDialog(false);
+      }
+    });
+  }
+
+  async function handleDeleteKpi(id: string) {
+    startTransition(async () => {
+      const result = await deleteKpi(id);
+      if (result.success) {
+        toast.success("KPI berhasil dihapus");
+      }
+    });
+  }
 
   return (
     <div className="space-y-5 lg:space-y-6">
@@ -351,7 +298,10 @@ export function KpiContent() {
                           <History className="w-3.5 h-3.5" /> {t("viewHistory")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 text-destructive">
+                        <DropdownMenuItem
+                          className="gap-2 text-destructive"
+                          onClick={() => handleDeleteKpi(kpi.id)}
+                        >
                           <Trash2 className="w-3.5 h-3.5" /> {t("delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -389,95 +339,120 @@ export function KpiContent() {
           <DialogHeader>
             <DialogTitle>{t("formTitle")}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <Label>{t("name")}</Label>
-              <Input placeholder="Contoh: Revenue Bulanan" />
+          <form action={handleCreateKpi}>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label>{t("name")}</Label>
+                <Input
+                  name="name"
+                  placeholder="Contoh: Revenue Bulanan"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>{t("description")}</Label>
+                <Textarea
+                  name="description"
+                  placeholder="Deskripsi singkat KPI ini..."
+                  rows={2}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>{t("category")}</Label>
+                  <Select name="category">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Penjualan">Penjualan</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Engineering">Engineering</SelectItem>
+                      <SelectItem value="SDM">SDM</SelectItem>
+                      <SelectItem value="Operasional">Operasional</SelectItem>
+                      <SelectItem value="Keuangan">Keuangan</SelectItem>
+                      <SelectItem value="Layanan">Layanan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>{t("unit")}</Label>
+                  <Select name="unit">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih satuan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="number">Angka</SelectItem>
+                      <SelectItem value="percentage">Persentase (%)</SelectItem>
+                      <SelectItem value="currency">Mata Uang (IDR)</SelectItem>
+                      <SelectItem value="custom">Kustom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>{t("target")}</Label>
+                  <Input name="target" type="number" placeholder="0" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>{t("frequency")}</Label>
+                  <Select name="frequency">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Frekuensi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">{t("daily")}</SelectItem>
+                      <SelectItem value="weekly">{t("weekly")}</SelectItem>
+                      <SelectItem value="monthly">{t("monthly")}</SelectItem>
+                      <SelectItem value="quarterly">
+                        {t("quarterly")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>{t("weight")}</Label>
+                  <Input
+                    name="weight"
+                    type="number"
+                    placeholder="1"
+                    min={1}
+                    max={5}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>{t("owner")}</Label>
+                  <Select name="ownerId">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih pemilik" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label>{t("description")}</Label>
-              <Textarea placeholder="Deskripsi singkat KPI ini..." rows={2} />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowNewDialog(false)}
+              >
+                {t("cancel")}
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Menyimpan..." : t("save")}
+              </Button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2">
-                <Label>{t("category")}</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sales">Penjualan</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="hr">SDM</SelectItem>
-                    <SelectItem value="operations">Operasional</SelectItem>
-                    <SelectItem value="finance">Keuangan</SelectItem>
-                    <SelectItem value="service">Layanan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label>{t("unit")}</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih satuan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="number">Angka</SelectItem>
-                    <SelectItem value="percentage">Persentase (%)</SelectItem>
-                    <SelectItem value="currency">Mata Uang (IDR)</SelectItem>
-                    <SelectItem value="custom">Kustom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2">
-                <Label>{t("target")}</Label>
-                <Input type="number" placeholder="0" />
-              </div>
-              <div className="grid gap-2">
-                <Label>{t("frequency")}</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Frekuensi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">{t("daily")}</SelectItem>
-                    <SelectItem value="weekly">{t("weekly")}</SelectItem>
-                    <SelectItem value="monthly">{t("monthly")}</SelectItem>
-                    <SelectItem value="quarterly">{t("quarterly")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2">
-                <Label>{t("weight")}</Label>
-                <Input type="number" placeholder="1" min={1} max={5} />
-              </div>
-              <div className="grid gap-2">
-                <Label>{t("owner")}</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih pemilik" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ari">Ari Pratama</SelectItem>
-                    <SelectItem value="siti">Siti Nurhaliza</SelectItem>
-                    <SelectItem value="budi">Budi Santoso</SelectItem>
-                    <SelectItem value="dewi">Dewi Lestari</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
-              {t("cancel")}
-            </Button>
-            <Button onClick={() => setShowNewDialog(false)}>{t("save")}</Button>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 

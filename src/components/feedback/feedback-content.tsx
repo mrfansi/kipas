@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Send,
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { PageHero } from "@/components/layout/page-hero";
+import { sendFeedback } from "@/lib/actions/feedback";
+import { toast } from "sonner";
 
 const feedbackTypes = [
   {
@@ -48,55 +50,65 @@ const feedbackTypes = [
   },
 ] as const;
 
-const demoFeedback = [
-  {
-    id: "1",
-    from: "Ari Pratama",
-    type: "praise" as const,
-    content:
-      "Kerja bagus menyelesaikan integrasi API dalam waktu singkat! Tim sangat terbantu dengan kecepatan delivery-nya.",
-    isAnonymous: false,
-    createdAt: "2026-02-17T10:30:00",
-  },
-  {
-    id: "2",
-    from: "Anonim",
-    type: "suggestion" as const,
-    content:
-      "Mungkin kita bisa menambahkan daily standup yang lebih singkat, 10 menit saja, agar lebih efisien.",
-    isAnonymous: true,
-    createdAt: "2026-02-15T14:20:00",
-  },
-  {
-    id: "3",
-    from: "Dewi Lestari",
-    type: "concern" as const,
-    content:
-      "Saya perhatikan workload tim engineering cukup tinggi akhir-akhir ini. Mungkin perlu evaluasi kapasitas sprint.",
-    isAnonymous: false,
-    createdAt: "2026-02-14T09:15:00",
-  },
-  {
-    id: "4",
-    from: "Budi Santoso",
-    type: "praise" as const,
-    content:
-      "Presentasi ke klien kemarin sangat impresif! Data yang disajikan sangat detail dan meyakinkan.",
-    isAnonymous: false,
-    createdAt: "2026-02-13T16:45:00",
-  },
-];
+interface FeedbackItem {
+  id: string;
+  from: string;
+  type: "praise" | "suggestion" | "concern";
+  content: string;
+  isAnonymous: boolean;
+  createdAt: string;
+}
 
-export function FeedbackContent() {
+interface UserOption {
+  id: string;
+  name: string;
+}
+
+interface FeedbackContentProps {
+  userId: string;
+  receivedFeedback: FeedbackItem[];
+  sentFeedback: FeedbackItem[];
+  users: UserOption[];
+}
+
+export function FeedbackContent({
+  userId,
+  receivedFeedback,
+  sentFeedback,
+  users,
+}: FeedbackContentProps) {
   const t = useTranslations("feedback");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedRecipient, setSelectedRecipient] = useState<string>("");
+  const [isPending, startTransition] = useTransition();
 
   const getTypeConfig = (type: string) => {
     return feedbackTypes.find((ft) => ft.key === type) || feedbackTypes[0];
   };
+
+  async function handleSendFeedback() {
+    if (!selectedType || !message || !selectedRecipient) return;
+
+    const formData = new FormData();
+    formData.set("fromUserId", userId);
+    formData.set("toUserId", selectedRecipient);
+    formData.set("type", selectedType);
+    formData.set("content", message);
+    formData.set("isAnonymous", String(isAnonymous));
+
+    startTransition(async () => {
+      const result = await sendFeedback(formData);
+      if (result.success) {
+        toast.success("Umpan balik berhasil dikirim!");
+        setSelectedType(null);
+        setMessage("");
+        setSelectedRecipient("");
+        setIsAnonymous(false);
+      }
+    });
+  }
 
   return (
     <div className="space-y-5 lg:space-y-6">
@@ -146,11 +158,13 @@ export function FeedbackContent() {
                 <SelectValue placeholder="Pilih penerima" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ari">Ari Pratama</SelectItem>
-                <SelectItem value="siti">Siti Nurhaliza</SelectItem>
-                <SelectItem value="budi">Budi Santoso</SelectItem>
-                <SelectItem value="dewi">Dewi Lestari</SelectItem>
-                <SelectItem value="all">Seluruh Tim</SelectItem>
+                {users
+                  .filter((u) => u.id !== userId)
+                  .map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -187,16 +201,19 @@ export function FeedbackContent() {
             </button>
             <Button
               className="gap-1.5"
-              disabled={!selectedType || !message || !selectedRecipient}
+              disabled={
+                !selectedType || !message || !selectedRecipient || isPending
+              }
+              onClick={handleSendFeedback}
             >
               <Send className="w-3.5 h-3.5" />
-              Kirim
+              {isPending ? "Mengirim..." : "Kirim"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Received Feedback */}
+      {/* Received/Sent Feedback */}
       <Tabs defaultValue="received">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="received">{t("received")}</TabsTrigger>
@@ -204,63 +221,126 @@ export function FeedbackContent() {
         </TabsList>
 
         <TabsContent value="received" className="space-y-3 mt-3">
-          {demoFeedback.map((fb) => {
-            const config = getTypeConfig(fb.type);
-            const Icon = config.icon;
-            return (
-              <Card key={fb.id} className="panel-card">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="text-[10px] bg-muted">
-                        {fb.isAnonymous
-                          ? "?"
-                          : fb.from
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{fb.from}</span>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] h-5 gap-1 ${config.color}`}
-                        >
-                          <Icon className="w-3 h-3" />
-                          {config.label}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground ml-auto">
-                          {new Date(fb.createdAt).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </span>
+          {receivedFeedback.length > 0 ? (
+            receivedFeedback.map((fb) => {
+              const config = getTypeConfig(fb.type);
+              const Icon = config.icon;
+              return (
+                <Card key={fb.id} className="panel-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-[10px] bg-muted">
+                          {fb.isAnonymous
+                            ? "?"
+                            : fb.from
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{fb.from}</span>
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] h-5 gap-1 ${config.color}`}
+                          >
+                            <Icon className="w-3 h-3" />
+                            {config.label}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {new Date(fb.createdAt).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                              },
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1.5">
+                          {fb.content}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1.5">
-                        {fb.content}
-                      </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-3 rounded-full bg-muted mb-3">
+                <MessageSquare className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="font-medium text-sm">
+                Belum ada umpan balik diterima
+              </p>
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="sent" className="mt-3">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="p-3 rounded-full bg-muted mb-3">
-              <MessageSquare className="w-6 h-6 text-muted-foreground" />
+        <TabsContent value="sent" className="space-y-3 mt-3">
+          {sentFeedback.length > 0 ? (
+            sentFeedback.map((fb) => {
+              const config = getTypeConfig(fb.type);
+              const Icon = config.icon;
+              return (
+                <Card key={fb.id} className="panel-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-[10px] bg-muted">
+                          {fb.from
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            Ke: {fb.from}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] h-5 gap-1 ${config.color}`}
+                          >
+                            <Icon className="w-3 h-3" />
+                            {config.label}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {new Date(fb.createdAt).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                              },
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1.5">
+                          {fb.content}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-3 rounded-full bg-muted mb-3">
+                <MessageSquare className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="font-medium text-sm">
+                Belum ada umpan balik terkirim
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mulai dengan memberikan umpan balik di atas
+              </p>
             </div>
-            <p className="font-medium text-sm">
-              Belum ada umpan balik terkirim
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Mulai dengan memberikan umpan balik di atas
-            </p>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -32,111 +32,110 @@ import {
 import Link from "next/link";
 import { PageHero } from "@/components/layout/page-hero";
 
-interface DashboardContentProps {
-  userName?: string;
+interface DashboardStats {
+  totalKpis: number;
+  onTrack: number;
+  atRisk: number;
+  completed: number;
+  totalKpisChange: string;
+  onTrackChange: string;
+  atRiskChange: string;
+  completedChange: string;
 }
 
-// Demo data
-const trendData = [
-  { month: "Jan", kpi: 65, target: 70 },
-  { month: "Feb", kpi: 72, target: 70 },
-  { month: "Mar", kpi: 68, target: 72 },
-  { month: "Apr", kpi: 78, target: 75 },
-  { month: "Mei", kpi: 82, target: 78 },
-  { month: "Jun", kpi: 85, target: 80 },
-  { month: "Jul", kpi: 79, target: 82 },
-  { month: "Agu", kpi: 88, target: 85 },
-];
+interface TrendDataPoint {
+  month: string;
+  kpi: number;
+  target: number;
+}
 
-const teamPerformanceData = [
-  { name: "Penjualan", value: 87 },
-  { name: "Marketing", value: 72 },
-  { name: "Engineering", value: 91 },
-  { name: "Operasional", value: 68 },
-  { name: "SDM", value: 79 },
-];
+interface TeamPerformance {
+  name: string;
+  value: number;
+}
 
-const categoryData = [
-  { name: "Tercapai", value: 12, color: "#0f7b6c" },
-  { name: "Sesuai Target", value: 8, color: "#2383e2" },
-  { name: "Berisiko", value: 4, color: "#d9730d" },
-  { name: "Terlambat", value: 2, color: "#e03e3e" },
-];
+interface CategoryBreakdown {
+  name: string;
+  value: number;
+  color: string;
+}
 
-const recentActivities = [
-  {
-    type: "kpi_update",
-    user: "Ari Pratama",
-    action: "memperbarui KPI Revenue Q3",
-    time: "2 menit lalu",
-    icon: BarChart3,
-  },
-  {
-    type: "goal_complete",
-    user: "Siti Nurhaliza",
-    action: "menyelesaikan tujuan Sprint 12",
-    time: "1 jam lalu",
-    icon: CheckCircle2,
-  },
-  {
-    type: "checkin",
-    user: "Budi Santoso",
-    action: "mengirim check-in mingguan",
-    time: "3 jam lalu",
-    icon: ClipboardCheck,
-  },
-  {
-    type: "alert",
-    user: "Sistem",
-    action: "Peringatan: Customer Churn naik 15%",
-    time: "5 jam lalu",
-    icon: AlertTriangle,
-  },
-  {
-    type: "kpi_update",
-    user: "Dewi Lestari",
-    action: "menambahkan data NPS Februari",
-    time: "6 jam lalu",
-    icon: BarChart3,
-  },
-];
+interface RecentActivity {
+  type: string;
+  user: string;
+  action: string;
+  time: string;
+  createdAt: string;
+}
 
-export function DashboardContent({ userName }: DashboardContentProps) {
+interface DashboardContentProps {
+  userName?: string;
+  stats: DashboardStats;
+  trendData: TrendDataPoint[];
+  teamPerformance: TeamPerformance[];
+  categoryBreakdown: CategoryBreakdown[];
+  recentActivities: RecentActivity[];
+}
+
+const activityIcons: Record<string, typeof BarChart3> = {
+  kpi_update: BarChart3,
+  goal_complete: CheckCircle2,
+  checkin: ClipboardCheck,
+  alert: AlertTriangle,
+  feedback: TrendingUp,
+};
+
+export function DashboardContent({
+  userName,
+  stats,
+  trendData,
+  teamPerformance,
+  categoryBreakdown,
+  recentActivities,
+}: DashboardContentProps) {
   const t = useTranslations("dashboard");
 
-  const stats = [
+  const statCards = [
     {
       label: t("totalKpis"),
-      value: "26",
-      change: "+3",
-      trend: "up" as const,
+      value: String(stats.totalKpis),
+      change: stats.totalKpisChange,
+      trend: stats.totalKpisChange.startsWith("+")
+        ? ("up" as const)
+        : ("down" as const),
       icon: BarChart3,
       color: "text-chart-1",
       bg: "bg-notion-bg-green",
     },
     {
       label: t("onTrack"),
-      value: "18",
-      change: "+2",
-      trend: "up" as const,
+      value: String(stats.onTrack),
+      change: stats.onTrackChange,
+      trend: stats.onTrackChange.startsWith("+")
+        ? ("up" as const)
+        : ("down" as const),
       icon: TrendingUp,
       color: "text-chart-2",
       bg: "bg-notion-bg-blue",
     },
     {
       label: t("atRisk"),
-      value: "5",
-      change: "-1",
-      trend: "down" as const,
+      value: String(stats.atRisk),
+      change: stats.atRiskChange,
+      trend: stats.atRiskChange.startsWith("-")
+        ? ("down" as const)
+        : ("up" as const),
       icon: AlertTriangle,
       color: "text-chart-4",
       bg: "bg-notion-bg-orange",
     },
     {
       label: t("completed"),
-      value: "12",
-      change: "+4",
-      trend: "up" as const,
+      value: String(stats.completed),
+      change: stats.completedChange,
+      trend: stats.completedChange.startsWith("+")
+        ? ("up" as const)
+        : ("down" as const),
       icon: CheckCircle2,
       color: "text-chart-1",
       bg: "bg-notion-bg-green",
@@ -152,25 +151,44 @@ export function DashboardContent({ userName }: DashboardContentProps) {
         subtitle={t("subtitle")}
         actions={
           <>
-            <Button asChild size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+            <Button
+              asChild
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100"
+            >
               <Link href="/kpi/new">
                 <Plus className="w-3.5 h-3.5" />
                 {t("addKpi")}
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20"
+            >
               <Link href="/data">
                 <Upload className="w-3.5 h-3.5" />
                 {t("importData")}
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20"
+            >
               <Link href="/goals/new">
                 <Target className="w-3.5 h-3.5" />
                 {t("createGoal")}
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20"
+            >
               <Link href="/checkins">
                 <ClipboardCheck className="w-3.5 h-3.5" />
                 {t("weeklyCheckin")}
@@ -182,7 +200,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} className="metric-tile">
@@ -303,7 +321,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={categoryBreakdown}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -311,7 +329,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {categoryData.map((entry, i) => (
+                    {categoryBreakdown.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
@@ -327,7 +345,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
               </ResponsiveContainer>
             </div>
             <div className="space-y-1.5 mt-2">
-              {categoryData.map((item) => (
+              {categoryBreakdown.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between text-xs"
@@ -358,15 +376,21 @@ export function DashboardContent({ userName }: DashboardContentProps) {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3">
-              {teamPerformanceData.map((team) => (
-                <div key={team.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{team.name}</span>
-                    <span className="font-medium">{team.value}%</span>
+              {teamPerformance.length > 0 ? (
+                teamPerformance.map((team) => (
+                  <div key={team.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>{team.name}</span>
+                      <span className="font-medium">{team.value}%</span>
+                    </div>
+                    <Progress value={team.value} className="h-2" />
                   </div>
-                  <Progress value={team.value} className="h-2" />
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Belum ada data performa tim
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -380,27 +404,33 @@ export function DashboardContent({ userName }: DashboardContentProps) {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3">
-              {recentActivities.map((activity, i) => {
-                const Icon = activity.icon;
-                return (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="mt-0.5 p-1.5 rounded-md bg-muted">
-                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity, i) => {
+                  const Icon = activityIcons[activity.type] || BarChart3;
+                  return (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="mt-0.5 p-1.5 rounded-md bg-muted">
+                        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          <span className="font-medium">{activity.user}</span>{" "}
+                          <span className="text-muted-foreground">
+                            {activity.action}
+                          </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {activity.time}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">
-                        <span className="font-medium">{activity.user}</span>{" "}
-                        <span className="text-muted-foreground">
-                          {activity.action}
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Belum ada aktivitas terbaru
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
