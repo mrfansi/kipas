@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const inter = Inter({
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -31,7 +31,7 @@ export default async function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
           <Toaster position="bottom-right" richColors />

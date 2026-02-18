@@ -6,7 +6,6 @@ import {
   Upload,
   FileSpreadsheet,
   CheckCircle2,
-  AlertCircle,
   X,
 } from "lucide-react";
 import {
@@ -16,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 interface KpiImportDialogProps {

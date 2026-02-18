@@ -8,18 +8,16 @@ import {
   LayoutDashboard,
   BarChart3,
   Target,
-  MessageSquareMore,
-  ClipboardCheck,
   Bell,
-  MoreHorizontal,
+  Settings,
 } from "lucide-react";
 
 const mobileNavItems = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
   { key: "kpi", href: "/kpi", icon: BarChart3 },
   { key: "goals", href: "/goals", icon: Target },
-  { key: "checkins", href: "/checkins", icon: ClipboardCheck },
   { key: "alerts", href: "/alerts", icon: Bell },
+  { key: "settings", href: "/settings", icon: Settings },
 ] as const;
 
 export function MobileNav() {
@@ -32,24 +30,28 @@ export function MobileNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden items-center justify-around border-t border-border bg-background/95 backdrop-blur-sm safe-bottom">
-      {mobileNavItems.map((item) => {
-        const active = isActive(item.href);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.key}
-            href={item.href}
-            className={cn(
-              "flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] transition-colors",
-              active ? "text-foreground" : "text-muted-foreground",
-            )}
-          >
-            <Icon className={cn("w-5 h-5", active && "text-foreground")} />
-            <span>{t(item.key)}</span>
-          </Link>
-        );
-      })}
+    <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-border/80 bg-background/90 backdrop-blur-xl md:hidden">
+      <div className="grid grid-cols-5 gap-1 px-2 py-1.5">
+        {mobileNavItems.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              className={cn(
+                "flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[10px] transition-colors",
+                active
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground",
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="truncate">{t(item.key)}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

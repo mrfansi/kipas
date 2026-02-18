@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Send, Smile, Frown, Meh, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { PageHero } from "@/components/layout/page-hero";
 
 const moodOptions = [
   {
@@ -74,15 +74,16 @@ export function CheckinsContent() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="People Ops"
+        badge="Weekly Ritual"
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       {/* Current Week Check-in */}
-      <Card className="border-border/50 shadow-none">
+      <Card className="panel-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             📝 {t("thisWeek")}
@@ -181,7 +182,7 @@ export function CheckinsContent() {
           Riwayat Check-in
         </h2>
         {pastCheckins.map((checkin, i) => (
-          <Card key={i} className="border-border/50 shadow-none">
+          <Card key={i} className="panel-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">{getMoodEmoji(checkin.mood)}</span>

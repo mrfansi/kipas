@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import {
   Plus,
   Upload,
-  Download,
   Search,
   Filter,
   MoreHorizontal,
@@ -17,7 +16,7 @@ import {
   Minus,
   BarChart3,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +41,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,8 +51,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiImportDialog } from "./kpi-import-dialog";
+import { PageHero } from "@/components/layout/page-hero";
 
 // Demo KPI data
 const demoKpis = [
@@ -208,12 +206,34 @@ export function KpiContent() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Execution"
+        badge={`${filteredKpis.length} KPI`}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20"
+              onClick={() => setShowImportDialog(true)}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {t("import")}
+            </Button>
+            <Button
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100"
+              onClick={() => setShowNewDialog(true)}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t("addNew")}
+            </Button>
+          </>
+        }
+      />
 
       {/* Actions Bar */}
       <div className="flex flex-col sm:flex-row gap-2">
@@ -260,7 +280,7 @@ export function KpiContent() {
       </div>
 
       {/* KPI Table */}
-      <Card className="border-border/50 shadow-none">
+      <Card className="panel-card">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

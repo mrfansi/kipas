@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import {
   Plus,
-  Bell,
   BellRing,
   TrendingUp,
   TrendingDown,
@@ -14,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { PageHero } from "@/components/layout/page-hero";
 
 const severityConfig = {
   low: { color: "bg-notion-bg-gray text-notion-gray" },
@@ -74,26 +74,29 @@ const demoAlerts = [
 
 export function AlertsContent() {
   const t = useTranslations("alerts");
+  const activeCount = demoAlerts.filter((alert) => alert.isActive).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-        </div>
-        <Button size="sm" className="gap-1.5 h-8">
-          <Plus className="w-3.5 h-3.5" />
-          {t("addNew")}
-        </Button>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Risk Monitor"
+        badge={`${activeCount} active alerts`}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Button size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+            <Plus className="w-3.5 h-3.5" />
+            {t("addNew")}
+          </Button>
+        }
+      />
 
       <div className="space-y-3">
         {demoAlerts.map((alert) => {
           const TypeIcon = typeIcons[alert.type];
           const severity = severityConfig[alert.severity];
           return (
-            <Card key={alert.id} className="border-border/50 shadow-none">
+            <Card key={alert.id} className="panel-card">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-lg ${severity.color}`}>

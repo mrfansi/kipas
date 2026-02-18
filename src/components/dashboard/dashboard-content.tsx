@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import {
   BarChart3,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   CheckCircle2,
   Plus,
@@ -17,7 +16,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   AreaChart,
@@ -27,13 +25,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
 import Link from "next/link";
+import { PageHero } from "@/components/layout/page-hero";
 
 interface DashboardContentProps {
   userName?: string;
@@ -147,52 +144,48 @@ export function DashboardContent({ userName }: DashboardContentProps) {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("title")}, {userName} 👋
-        </h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
-        <Button asChild size="sm" className="gap-1.5 h-8">
-          <Link href="/kpi/new">
-            <Plus className="w-3.5 h-3.5" />
-            {t("addKpi")}
-          </Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="gap-1.5 h-8">
-          <Link href="/data">
-            <Upload className="w-3.5 h-3.5" />
-            {t("importData")}
-          </Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="gap-1.5 h-8">
-          <Link href="/goals/new">
-            <Target className="w-3.5 h-3.5" />
-            {t("createGoal")}
-          </Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="gap-1.5 h-8">
-          <Link href="/checkins">
-            <ClipboardCheck className="w-3.5 h-3.5" />
-            {t("weeklyCheckin")}
-          </Link>
-        </Button>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Command Center"
+        badge="Live 02/2026"
+        title={`${t("title")}, ${userName ?? "Tim"} `}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <Button asChild size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+              <Link href="/kpi/new">
+                <Plus className="w-3.5 h-3.5" />
+                {t("addKpi")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+              <Link href="/data">
+                <Upload className="w-3.5 h-3.5" />
+                {t("importData")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+              <Link href="/goals/new">
+                <Target className="w-3.5 h-3.5" />
+                {t("createGoal")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-white/40 bg-white/10 text-white hover:bg-white/20">
+              <Link href="/checkins">
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                {t("weeklyCheckin")}
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card
-              key={stat.label}
-              className="border-border/50 shadow-none hover:shadow-sm transition-shadow"
-            >
+            <Card key={stat.label} className="metric-tile">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${stat.bg}`}>
@@ -228,7 +221,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Trend Chart */}
-        <Card className="lg:col-span-2 border-border/50 shadow-none">
+        <Card className="panel-card lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Activity className="w-4 h-4 text-muted-foreground" />
@@ -299,7 +292,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
         </Card>
 
         {/* Category Pie Chart */}
-        <Card className="border-border/50 shadow-none">
+        <Card className="panel-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               {t("kpiOverview")}
@@ -357,7 +350,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Team Performance */}
-        <Card className="border-border/50 shadow-none">
+        <Card className="panel-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               {t("teamPerformance")}
@@ -379,7 +372,7 @@ export function DashboardContent({ userName }: DashboardContentProps) {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="border-border/50 shadow-none">
+        <Card className="panel-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               {t("recentActivity")}

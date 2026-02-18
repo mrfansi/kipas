@@ -9,11 +9,11 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Database,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageHero } from "@/components/layout/page-hero";
 
 const typeConfig = {
   csv: { icon: FileSpreadsheet, color: "bg-notion-bg-green text-notion-green" },
@@ -64,23 +64,26 @@ const demoSources = [
 
 export function DataContent() {
   const t = useTranslations("data");
+  const healthySources = demoSources.filter((source) => source.status === "active").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-        </div>
-        <Button size="sm" className="gap-1.5 h-8">
-          <Plus className="w-3.5 h-3.5" />
-          {t("addSource")}
-        </Button>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Data Backbone"
+        badge={`${healthySources}/${demoSources.length} healthy`}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Button size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+            <Plus className="w-3.5 h-3.5" />
+            {t("addSource")}
+          </Button>
+        }
+      />
 
       {/* Source Type Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="border-border/50 shadow-none hover:shadow-sm transition-shadow cursor-pointer">
+        <Card className="panel-card cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-notion-bg-green">
               <FileSpreadsheet className="w-5 h-5 text-notion-green" />
@@ -91,7 +94,7 @@ export function DataContent() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 shadow-none hover:shadow-sm transition-shadow cursor-pointer">
+        <Card className="panel-card cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-notion-bg-blue">
               <Globe className="w-5 h-5 text-notion-blue" />
@@ -104,7 +107,7 @@ export function DataContent() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 shadow-none hover:shadow-sm transition-shadow cursor-pointer">
+        <Card className="panel-card cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-notion-bg-yellow">
               <PenLine className="w-5 h-5 text-notion-yellow" />
@@ -127,10 +130,7 @@ export function DataContent() {
           const TypeIcon = config.icon;
           const StatusIcon = status.icon;
           return (
-            <Card
-              key={source.id}
-              className="border-border/50 shadow-none hover:shadow-sm transition-shadow cursor-pointer"
-            >
+            <Card key={source.id} className="panel-card cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${config.color}`}>

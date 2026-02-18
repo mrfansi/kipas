@@ -12,21 +12,18 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-dvh overflow-hidden">
-      {/* Desktop Sidebar */}
       <Sidebar />
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Topbar userEmail={user?.email} userName={user?.name} />
 
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+          <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Mobile Bottom Nav */}
       <MobileNav />
     </div>
   );

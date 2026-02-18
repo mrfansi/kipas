@@ -1,16 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Sun, Moon, Monitor, Globe } from "lucide-react";
+import { Sun, Moon, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/hooks/use-theme";
 import { useLocale } from "@/hooks/use-locale";
 import { cn } from "@/lib/utils";
+import { PageHero } from "@/components/layout/page-hero";
 
 export function SettingsContent() {
   const t = useTranslations("settings");
@@ -28,11 +28,13 @@ export function SettingsContent() {
   ] as const;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Control Room"
+        badge="Workspace Config"
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <Tabs defaultValue="general">
         <TabsList className="bg-muted/50">
@@ -43,7 +45,7 @@ export function SettingsContent() {
 
         <TabsContent value="general" className="space-y-4 mt-4">
           {/* Theme */}
-          <Card className="border-border/50 shadow-none">
+          <Card className="panel-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
                 {t("theme")}
@@ -74,7 +76,7 @@ export function SettingsContent() {
           </Card>
 
           {/* Language */}
-          <Card className="border-border/50 shadow-none">
+          <Card className="panel-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Globe className="w-4 h-4" />
@@ -104,7 +106,7 @@ export function SettingsContent() {
         </TabsContent>
 
         <TabsContent value="organization" className="space-y-4 mt-4">
-          <Card className="border-border/50 shadow-none">
+          <Card className="panel-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
                 {t("organization")}
@@ -127,7 +129,7 @@ export function SettingsContent() {
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4 mt-4">
-          <Card className="border-border/50 shadow-none">
+          <Card className="panel-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
                 {t("notifications")}

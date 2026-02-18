@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Plus,
-  Target,
   Calendar,
   User,
   Link2,
@@ -14,10 +12,11 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { PageHero } from "@/components/layout/page-hero";
 
 const statusConfig = {
   not_started: {
@@ -106,20 +105,22 @@ const demoGoals = [
 
 export function GoalsContent() {
   const t = useTranslations("goals");
+  const completedGoals = demoGoals.filter((goal) => goal.status === "completed").length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-        </div>
-        <Button size="sm" className="gap-1.5 h-8">
-          <Plus className="w-3.5 h-3.5" />
-          {t("addNew")}
-        </Button>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="Planning"
+        badge={`${completedGoals}/${demoGoals.length} closed`}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Button size="sm" className="h-9 gap-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100">
+            <Plus className="w-3.5 h-3.5" />
+            {t("addNew")}
+          </Button>
+        }
+      />
 
       {/* Status Summary */}
       <div className="flex flex-wrap gap-2">
@@ -150,10 +151,7 @@ export function GoalsContent() {
             new Date(goal.dueDate) < new Date() && goal.status !== "completed";
 
           return (
-            <Card
-              key={goal.id}
-              className="border-border/50 shadow-none hover:shadow-sm transition-shadow cursor-pointer"
-            >
+            <Card key={goal.id} className="panel-card cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className={`p-1.5 rounded-md ${config.color} mt-0.5`}>

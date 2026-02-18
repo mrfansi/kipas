@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { PageHero } from "@/components/layout/page-hero";
 
 const feedbackTypes = [
   {
@@ -98,15 +99,16 @@ export function FeedbackContent() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
-      </div>
+    <div className="space-y-5 lg:space-y-6">
+      <PageHero
+        marker="People Ops"
+        badge="Culture Signals"
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       {/* Give Feedback */}
-      <Card className="border-border/50 shadow-none">
+      <Card className="panel-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium">{t("give")}</CardTitle>
         </CardHeader>
@@ -206,7 +208,7 @@ export function FeedbackContent() {
             const config = getTypeConfig(fb.type);
             const Icon = config.icon;
             return (
-              <Card key={fb.id} className="border-border/50 shadow-none">
+              <Card key={fb.id} className="panel-card">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <Avatar className="w-8 h-8">
