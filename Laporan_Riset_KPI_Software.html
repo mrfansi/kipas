@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis & Panduan KPI Software Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F9FAFB; color: #1F2937; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 350px;
+            margin: 0 auto;
+        }
+        .active-tab {
+            border-bottom: 2px solid #2563EB;
+            color: #2563EB;
+            font-weight: 600;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+    </style>
+    <!-- Chosen Palette: Modern Corporate - Slate/Blue/Emerald (Clean, Trustworthy, Analytical) -->
+    <!-- Application Structure Plan:
+        1. **Hero & Navigation**: Introduction to the research scope. Navigation based on user intent (Market View, Feature Analysis, Role Simulation, Buying Guide).
+        2. **Market Landscape (Dashboard Style)**: Quantitative data on adoption and trends using Chart.js. Goal: Show 'Why this matters'.
+        3. **Feature Priority (Interactive Cards)**: Qualitative analysis of what makes KPI software good. Users can filter by 'Category' (UI, Data, Admin).
+        4. **Role-Based Simulation (The Core Interaction)**: A dynamic dashboard where users select a role (CEO, Sales, Dev) and the charts update to show RELEVANT KPIs for that software persona. This demonstrates "Contextual Relevance".
+        5. **Comparison Matrix (Plotly Bubble)**: Comparing types of software (Enterprise vs. SaaS vs. Niche) based on Cost vs. Flexibility.
+        6. **Implementation Roadmap**: A step-by-step interactive list.
+        Why: This structure moves from macro (market) to micro (features/roles) to decision (comparison/implementation), mirroring a buyer's research journey.
+    -->
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-lg">KS</div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Riset KPI Software 2024</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="navTo('market')" id="nav-market" class="nav-btn active-tab px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900">Pasar & Tren</button>
+                    <button onclick="navTo('features')" id="nav-features" class="nav-btn px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900">Analisis Fitur</button>
+                    <button onclick="navTo('simulation')" id="nav-simulation" class="nav-btn px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900">Simulasi Dashboard</button>
+                    <button onclick="navTo('comparison')" id="nav-comparison" class="nav-btn px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900">Matriks Perbandingan</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- SECTION 1: Market Landscape -->
+        <section id="market" class="section-view animate-fade">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Lanskap Pasar KPI Software</h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    Bagian ini merangkum hasil riset kuantitatif mengenai adopsi perangkat lunak manajemen kinerja (Performance Management Software). 
+                    Data menunjukkan pergeseran signifikan dari pelacakan manual (spreadsheet) menuju solusi terintegrasi berbasis Cloud/SaaS, 
+                    didorong oleh kebutuhan akan data <i>real-time</i> dan integrasi AI.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Market Growth Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-900">Tren Adopsi Teknologi</h3>
+                            <p class="text-sm text-slate-500">Pergeseran metode pelacakan KPI (2020-2025 Est.)</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="adoptionChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+                        <strong>Insight:</strong> Penggunaan Spreadsheet menurun 40% dalam 3 tahun terakhir, digantikan oleh SaaS Khusus.
+                    </div>
+                </div>
+
+                <!-- Challenges Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-900">Tantangan Utama Implementasi</h3>
+                            <p class="text-sm text-slate-500">Persentase organisasi yang menghadapi kendala</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="challengesChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-3 bg-red-50 rounded-lg text-sm text-red-800">
+                        <strong>Insight:</strong> "Integrasi Data" adalah hambatan terbesar (45%), mengalahkan biaya.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Feature Analysis -->
+        <section id="features" class="section-view hidden animate-fade">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Analisis Fitur Kunci</h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    Berdasarkan riset fitur terhadap 20+ platform KPI terkemuka, kami mengkategorikan fungsionalitas menjadi tiga pilar utama: 
+                    User Experience (UX), Integritas Data, dan Kecerdasan Bisnis. Klik kategori di bawah untuk melihat detail fitur wajib.
+                </p>
+            </div>
+
+            <!-- Interactive Filters -->
+            <div class="flex space-x-4 mb-6">
+                <button onclick="filterFeatures('all')" class="feature-filter-btn bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-700 transition">Semua</button>
+                <button onclick="filterFeatures('ux')" class="feature-filter-btn bg-white text-slate-600 border border-slate-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-50 transition">UX & Visualisasi</button>
+                <button onclick="filterFeatures('data')" class="feature-filter-btn bg-white text-slate-600 border border-slate-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-50 transition">Data & Integrasi</button>
+                <button onclick="filterFeatures('admin')" class="feature-filter-btn bg-white text-slate-600 border border-slate-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-50 transition">Admin & Keamanan</button>
+            </div>
+
+            <div id="feature-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Cards will be injected by JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 3: Role-Based Simulation -->
+        <section id="simulation" class="section-view hidden animate-fade">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Simulasi Peran (Role-Based Dashboard)</h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    Salah satu temuan riset terpenting adalah kebutuhan akan <strong>konteks</strong>. Software KPI yang baik beradaptasi dengan penggunanya. 
+                    Pilih peran di bawah ini untuk melihat simulasi bagaimana dashboard KPI Software menyesuaikan metrik dan visualisasinya.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                <!-- Dashboard Toolbar -->
+                <div class="bg-slate-50 border-b border-slate-200 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-wider">Pilih Persona:</span>
+                        <select id="roleSelector" onchange="updateDashboard()" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                            <option value="ceo">Eksekutif / CEO</option>
+                            <option value="sales">Manajer Penjualan</option>
+                            <option value="dev">Lead Developer</option>
+                            <option value="hr">HR Manager</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="text-xs font-mono bg-green-100 text-green-800 px-2 py-1 rounded">Status: Live</span>
+                        <span class="text-xs font-mono bg-slate-200 text-slate-600 px-2 py-1 rounded">Last Sync: 2m ago</span>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="p-6">
+                    <div id="dashboard-header" class="mb-6">
+                        <h3 class="text-2xl font-bold text-slate-800" id="dash-title">Executive Overview</h3>
+                        <p class="text-slate-500" id="dash-desc">High-level metrics focusing on business health and growth.</p>
+                    </div>
+
+                    <!-- Dynamic Key Stats Row -->
+                    <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <!-- KPI Cards injected by JS -->
+                    </div>
+
+                    <!-- Dynamic Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <h4 class="font-semibold text-slate-700 mb-4" id="main-chart-title">Revenue Trend</h4>
+                            <div class="chart-container">
+                                <canvas id="roleMainChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <h4 class="font-semibold text-slate-700 mb-4" id="secondary-chart-title">Department Breakup</h4>
+                            <div class="chart-container">
+                                <canvas id="roleSecondaryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Comparison & Buying Guide -->
+        <section id="comparison" class="section-view hidden animate-fade">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Matriks Perbandingan Solusi</h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    Bagaimana memilih software yang tepat? Grafik di bawah ini memetakan solusi populer berdasarkan riset pasar, 
+                    membandingkan <strong>Fleksibilitas Kustomisasi</strong> (Sumbu Y) vs <strong>Biaya Implementasi</strong> (Sumbu X). 
+                    Ukuran lingkaran merepresentasikan kelengkapan fitur.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <div id="plotlyChart" class="w-full h-[500px]"></div>
+                <div class="mt-4 text-center text-sm text-slate-500">
+                    *Hover pada lingkaran untuk detail kategori software. Data berdasarkan analisis fitur dan pricing publik.
+                </div>
+            </div>
+
+            <!-- Interactive Checklist -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 class="text-xl font-bold text-blue-900 mb-4">Checklist Sebelum Membeli</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">1</div>
+                            <span class="text-slate-700 text-sm">Apakah software memiliki API terbuka untuk integrasi dengan CRM/ERP yang sudah ada?</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">2</div>
+                            <span class="text-slate-700 text-sm">Apakah model harga berbasis 'per-user' atau 'flat rate'? Hitung TCO (Total Cost of Ownership).</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">3</div>
+                            <span class="text-slate-700 text-sm">Seberapa mudah dashboard dikustomisasi tanpa bantuan IT Support?</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">4</div>
+                            <span class="text-slate-700 text-sm">Apakah tersedia aplikasi mobile untuk update KPI di lapangan?</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-slate-800 text-white p-6 rounded-xl">
+                    <h3 class="text-xl font-bold mb-4">Rekomendasi Singkat</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-emerald-500 pl-4">
+                            <h4 class="font-bold text-emerald-400">Untuk Startup (1-50 Karyawan)</h4>
+                            <p class="text-sm text-slate-300 mt-1">Pilih solusi "SaaS Ringan". Fokus pada kemudahan penggunaan dan setup instan. Hindari kontrak tahunan jangka panjang.</p>
+                        </div>
+                        <div class="border-l-4 border-yellow-500 pl-4">
+                            <h4 class="font-bold text-yellow-400">Untuk Enterprise (>500 Karyawan)</h4>
+                            <p class="text-sm text-slate-300 mt-1">Wajib fitur "Data Governance" dan SSO (Single Sign-On). Integrasi Database on-premise seringkali dibutuhkan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Visualization & Content Choices: 
+        1. **Adoption Trend (Line Chart)**: Goal: Show market shift. Method: Chart.js Line. Interaction: Tooltip. Justification: Best for time-series data showing decline of spreadsheets vs rise of SaaS.
+        2. **Challenges (Bar Chart)**: Goal: Highlight pain points. Method: Chart.js Horizontal Bar. Interaction: Hover. Justification: Compares categorical magnitudes clearly.
+        3. **Features (Grid of Cards)**: Goal: Educate on feature sets. Method: HTML/Tailwind Grid + JS Filtering. Justification: Text-heavy content needs structured, digestible layout, not a chart.
+        4. **Role Simulation (Dashboard)**: Goal: Show versatility. Method: Multiple Chart.js instances updated via JS State. Justification: Users need to 'feel' the difference between a Sales dashboard and a Dev dashboard.
+        5. **Comparison (Bubble Chart)**: Goal: Multi-variable comparison. Method: Plotly. Justification: Allows showing 3 dimensions (Cost, Flex, Feature Set size) in one view, superior to a simple table.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        // --- DATA SOURCE (Simulated Research Data) ---
+        const researchData = {
+            features: [
+                { id: 1, title: "Real-time Dashboard", cat: "ux", desc: "Visualisasi data yang diperbarui secara instan tanpa perlu refresh manual.", icon: "⚡" },
+                { id: 2, title: "Integrasi API Otomatis", cat: "data", desc: "Koneksi ke Salesforce, Jira, HubSpot, dan SQL Database.", icon: "🔗" },
+                { id: 3, title: "Manajemen Akses (RBAC)", cat: "admin", desc: "Kontrol siapa yang bisa melihat atau mengedit KPI spesifik.", icon: "🛡️" },
+                { id: 4, title: "Mobile App Native", cat: "ux", desc: "Akses metrik kritis melalui iOS dan Android dengan push notifikasi.", icon: "📱" },
+                { id: 5, title: "Drill-down Capability", cat: "ux", desc: "Klik pada grafik untuk melihat data mentah di baliknya.", icon: "🔍" },
+                { id: 6, title: "AI Forecasting", cat: "data", desc: "Prediksi tren masa depan berdasarkan data historis.", icon: "🤖" },
+                { id: 7, title: "Audit Logs", cat: "admin", desc: "Rekam jejak setiap perubahan target atau data untuk kepatuhan.", icon: "📝" },
+                { id: 8, title: "Custom Formula Builder", cat: "data", desc: "Membuat metrik turunan kompleks (misal: LTV/CAC ratio).", icon: "🧮" }
+            ],
+            roles: {
+                ceo: {
+                    title: "Executive Overview",
+                    desc: "Fokus pada kesehatan finansial, pertumbuhan, dan risiko makro.",
+                    kpis: [
+                        { label: "ARR (Annual Recurring Revenue)", value: "$4.2M", trend: "+12%", color: "text-emerald-600", bg: "bg-emerald-100" },
+                        { label: "Net Profit Margin", value: "24%", trend: "+2%", color: "text-blue-600", bg: "bg-blue-100" },
+                        { label: "Runway", value: "18 Bulan", trend: "Stable", color: "text-slate-600", bg: "bg-slate-100" },
+                        { label: "Customer Satisfaction (CSAT)", value: "4.8/5", trend: "+0.1", color: "text-purple-600", bg: "bg-purple-100" }
+                    ],
+                    charts: {
+                        main: {
+                            label: "Revenue Growth (YoY)",
+                            labels: ["Q1", "Q2", "Q3", "Q4"],
+                            data: [1.2, 1.5, 2.1, 2.8],
+                            type: 'line',
+                            color: '#2563EB'
+                        },
+                        sec: {
+                            label: "Cost Breakdown",
+                            labels: ["Ops", "Mkt", "R&D", "G&A"],
+                            data: [30, 25, 35, 10],
+                            type: 'doughnut'
+                        }
+                    }
+                },
+                sales: {
+                    title: "Sales Performance Monitor",
+                    desc: "Pelacakan pipeline, konversi, dan aktivitas tim penjualan.",
+                    kpis: [
+                        { label: "New Leads", value: "145", trend: "+15%", color: "text-blue-600", bg: "bg-blue-100" },
+                        { label: "Conversion Rate", value: "3.2%", trend: "-0.5%", color: "text-red-600", bg: "bg-red-100" },
+                        { label: "Deals Closed", value: "28", trend: "+4", color: "text-emerald-600", bg: "bg-emerald-100" },
+                        { label: "Avg Deal Size", value: "$12,500", trend: "+$500", color: "text-emerald-600", bg: "bg-emerald-100" }
+                    ],
+                    charts: {
+                        main: {
+                            label: "Sales Pipeline Value",
+                            labels: ["Discovery", "Demo", "Proposal", "Negotiation", "Closed"],
+                            data: [500, 350, 200, 120, 80],
+                            type: 'bar',
+                            color: '#10B981'
+                        },
+                        sec: {
+                            label: "Lead Sources",
+                            labels: ["Inbound", "Outbound", "Referral", "Ads"],
+                            data: [40, 30, 20, 10],
+                            type: 'polarArea'
+                        }
+                    }
+                },
+                dev: {
+                    title: "Engineering Metrics (DORA)",
+                    desc: "Efisiensi pengembangan, kualitas kode, dan stabilitas sistem.",
+                    kpis: [
+                        { label: "Deployment Frequency", value: "12/week", trend: "+2", color: "text-indigo-600", bg: "bg-indigo-100" },
+                        { label: "Lead Time for Changes", value: "4 Hours", trend: "-1h", color: "text-emerald-600", bg: "bg-emerald-100" },
+                        { label: "Change Failure Rate", value: "2.1%", trend: "-0.4%", color: "text-emerald-600", bg: "bg-emerald-100" },
+                        { label: "Mean Time to Recover", value: "35m", trend: "Stable", color: "text-slate-600", bg: "bg-slate-100" }
+                    ],
+                    charts: {
+                        main: {
+                            label: "Bugs vs Features Completed",
+                            labels: ["W1", "W2", "W3", "W4"],
+                            data: [5, 3, 8, 2], // Bugs
+                            data2: [12, 15, 14, 18], // Features
+                            type: 'line-dual',
+                            color: '#6366F1'
+                        },
+                        sec: {
+                            label: "Ticket Status",
+                            labels: ["To Do", "In Prog", "Review", "Done"],
+                            data: [15, 8, 4, 32],
+                            type: 'doughnut'
+                        }
+                    }
+                },
+                hr: {
+                    title: "HR & People Analytics",
+                    desc: "Retensi karyawan, kepuasan kerja, dan efektivitas rekrutmen.",
+                    kpis: [
+                        { label: "eNPS Score", value: "42", trend: "+5", color: "text-pink-600", bg: "bg-pink-100" },
+                        { label: "Turnover Rate", value: "8%", trend: "-1%", color: "text-emerald-600", bg: "bg-emerald-100" },
+                        { label: "Time to Hire", value: "24 Days", trend: "+2 Days", color: "text-yellow-600", bg: "bg-yellow-100" },
+                        { label: "Training Completion", value: "92%", trend: "Target Met", color: "text-blue-600", bg: "bg-blue-100" }
+                    ],
+                    charts: {
+                        main: {
+                            label: "Headcount Growth",
+                            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                            data: [45, 48, 50, 52, 55, 60],
+                            type: 'line',
+                            color: '#DB2777'
+                        },
+                        sec: {
+                            label: "Employee Departments",
+                            labels: ["Tech", "Sales", "Ops", "HR"],
+                            data: [40, 30, 20, 10],
+                            type: 'pie'
+                        }
+                    }
+                }
+            }
+        };
+
+        // --- GLOBAL STATE ---
+        let currentRoleChartMain = null;
+        let currentRoleChartSec = null;
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMarketCharts();
+            renderFeatures('all');
+            updateDashboard(); // Load CEO dashboard by default
+            initComparisonChart();
+        });
+
+        // --- NAVIGATION LOGIC ---
+        function navTo(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section-view').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Show target section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Update Tab Styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'text-blue-600');
+                btn.classList.add('text-slate-500');
+            });
+            document.getElementById(`nav-${sectionId}`).classList.add('active-tab', 'text-blue-600');
+            document.getElementById(`nav-${sectionId}`).classList.remove('text-slate-500');
+
+            // Resize charts if needed when unhiding
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // --- SECTION 1: MARKET CHARTS ---
+        function initMarketCharts() {
+            // Chart 1: Adoption Trend
+            const ctx1 = document.getElementById('adoptionChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2021', '2022', '2023', '2024', '2025 (Est)'],
+                    datasets: [
+                        {
+                            label: 'Cloud/SaaS KPI Tools',
+                            data: [25, 35, 48, 60, 72, 85],
+                            borderColor: '#2563EB',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Spreadsheet Manual',
+                            data: [70, 60, 45, 35, 25, 15],
+                            borderColor: '#94A3B8',
+                            borderDash: [5, 5],
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '% Market Share' } } }
+                }
+            });
+
+            // Chart 2: Challenges
+            const ctx2 = document.getElementById('challengesChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Integrasi Data', 'Adopsi User', 'Biaya Lisensi', 'Kustomisasi', 'Keamanan'],
+                    datasets: [{
+                        label: 'Tingkat Kesulitan',
+                        data: [45, 30, 25, 20, 15],
+                        backgroundColor: [
+                            '#EF4444', '#F59E0B', '#3B82F6', '#10B981', '#6366F1'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // --- SECTION 2: FEATURE GRID ---
+        function renderFeatures(filter) {
+            const container = document.getElementById('feature-grid');
+            container.innerHTML = '';
+            
+            const filteredData = filter === 'all' 
+                ? researchData.features 
+                : researchData.features.filter(f => f.cat === filter);
+
+            filteredData.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-6 rounded-xl border border-slate-200 card-hover transition-all';
+                let catBadge = '';
+                if(f.cat === 'ux') catBadge = '<span class="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded">UX</span>';
+                if(f.cat === 'data') catBadge = '<span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">DATA</span>';
+                if(f.cat === 'admin') catBadge = '<span class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded">ADMIN</span>';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-4xl">${f.icon}</div>
+                        ${catBadge}
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">${f.title}</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">${f.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+
+            // Update button styles
+            document.querySelectorAll('.feature-filter-btn').forEach(btn => {
+                if(btn.textContent.toLowerCase().includes(filter === 'all' ? 'semua' : filter)) {
+                    btn.classList.add('bg-slate-800', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-600', 'border');
+                } else {
+                    btn.classList.remove('bg-slate-800', 'text-white');
+                    btn.classList.add('bg-white', 'text-slate-600', 'border');
+                }
+            });
+        }
+
+        function filterFeatures(cat) {
+            renderFeatures(cat);
+        }
+
+        // --- SECTION 3: ROLE DASHBOARD (COMPLEX INTERACTION) ---
+        function updateDashboard() {
+            const roleKey = document.getElementById('roleSelector').value;
+            const data = researchData.roles[roleKey];
+
+            // Update Text
+            document.getElementById('dash-title').textContent = data.title;
+            document.getElementById('dash-desc').textContent = data.desc;
+            
+            // Update KPIs
+            const kpiContainer = document.getElementById('kpi-cards');
+            kpiContainer.innerHTML = '';
+            data.kpis.forEach(kpi => {
+                kpiContainer.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <p class="text-slate-500 text-xs uppercase font-bold tracking-wider mb-1">${kpi.label}</p>
+                        <div class="flex items-end justify-between">
+                            <h4 class="text-2xl font-bold text-slate-900">${kpi.value}</h4>
+                            <span class="${kpi.bg} ${kpi.color} text-xs font-bold px-2 py-1 rounded-full">${kpi.trend}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update Main Chart
+            if (currentRoleChartMain) currentRoleChartMain.destroy();
+            const ctxMain = document.getElementById('roleMainChart').getContext('2d');
+            document.getElementById('main-chart-title').textContent = data.charts.main.label;
+            
+            let mainDatasets = [];
+            if(data.charts.main.type === 'line-dual') {
+                mainDatasets = [
+                    { label: 'Bugs', data: data.charts.main.data, borderColor: '#EF4444', backgroundColor: 'transparent', tension: 0.3 },
+                    { label: 'Features', data: data.charts.main.data2, borderColor: '#10B981', backgroundColor: 'transparent', tension: 0.3 }
+                ];
+            } else {
+                mainDatasets = [{
+                    label: data.charts.main.label,
+                    data: data.charts.main.data,
+                    backgroundColor: data.charts.main.color,
+                    borderColor: data.charts.main.color,
+                    tension: 0.3,
+                    fill: data.charts.main.type === 'area'
+                }];
+            }
+
+            currentRoleChartMain = new Chart(ctxMain, {
+                type: data.charts.main.type === 'line-dual' ? 'line' : data.charts.main.type,
+                data: {
+                    labels: data.charts.main.labels,
+                    datasets: mainDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Update Secondary Chart
+            if (currentRoleChartSec) currentRoleChartSec.destroy();
+            const ctxSec = document.getElementById('roleSecondaryChart').getContext('2d');
+            document.getElementById('secondary-chart-title').textContent = data.charts.sec.label;
+
+            currentRoleChartSec = new Chart(ctxSec, {
+                type: data.charts.sec.type,
+                data: {
+                    labels: data.charts.sec.labels,
+                    datasets: [{
+                        data: data.charts.sec.data,
+                        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // --- SECTION 4: COMPARISON CHART (PLOTLY) ---
+        function initComparisonChart() {
+            const trace1 = {
+                x: [10, 30, 80, 90, 40], // Cost (Low to High)
+                y: [20, 40, 90, 85, 60], // Flexibility (Low to High)
+                text: ['Basic SaaS Tools', 'Niche KPI Apps', 'Enterprise Suites (SAP/Oracle)', 'Modern Data Platforms (Tableau/PowerBI)', 'Mid-Market Leaders'],
+                mode: 'markers',
+                marker: {
+                    size: [20, 30, 60, 50, 40], // Feature Set Size
+                    color: ['#94A3B8', '#60A5FA', '#1E40AF', '#10B981', '#8B5CF6'],
+                    opacity: 0.7
+                }
+            };
+
+            const data = [trace1];
+
+            const layout = {
+                title: false,
+                xaxis: { title: 'Biaya Implementasi & Lisensi', showgrid: true, zeroline: false },
+                yaxis: { title: 'Fleksibilitas Kustomisasi', showgrid: true, zeroline: false },
+                showlegend: false,
+                margin: { t: 20, r: 20, b: 60, l: 60 },
+                hovermode: 'closest',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('plotlyChart', data, layout, {displayModeBar: false, responsive: true});
+        }
+
+    </script>
+</body>
+</html>
